@@ -6,6 +6,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Geno Insights — Dejá de mover datos a mano</title>
 <meta name="description" content="Conectamos tus sistemas, ordenamos tus datos e implementamos IA que funciona todos los días. Agendá tu diagnóstico gratuito.">
+<script>
+  // Motion gate: runs before first paint. Without JS or with reduced motion nothing below is ever hidden.
+  (function () {
+    var r = document.documentElement, seen = true;
+    try { seen = !!sessionStorage.getItem('geno-intro'); if (!seen) sessionStorage.setItem('geno-intro', '1'); } catch (e) {}
+    if (matchMedia('(prefers-reduced-motion: no-preference)').matches && 'IntersectionObserver' in window) {
+      r.classList.add('reveal-on');
+      if (!seen) r.classList.add('intro-on');
+      setTimeout(function () { if (!window.__geno) r.classList.remove('reveal-on', 'intro-on', 'hero-go'); }, 3500);
+    }
+  })();
+</script>
 <style>
   :root {
     --ink: #020e26; --ink-2: #061a3d; --ink-3: #0a2350; --ink-soft: #36506f;
@@ -109,6 +121,34 @@
   .next .btn { margin-top: 20px; }
   .next .micro { color: var(--fog-2); text-align: center; margin-top: 12px; }
 
+  /* Short desktop viewports: the whole selector panel must clear the fold under the 80px header */
+  @media (min-width: 961px) and (max-height: 1000px) {
+    .hero { padding: 32px 0 56px; }
+    .diag { padding: 28px; }
+    .diag h2 { font-size: 28px; }
+    .diag .lead { margin: 4px 0 16px; }
+    fieldset { gap: 8px; }
+    .opt label { padding: 12px 16px; }
+    .opt small { margin-top: 0; }
+    .next { margin-top: 20px; padding: 20px 24px; }
+    .next .lbl { margin-bottom: 4px; }
+    .next h3 { font-size: 22px; }
+    .next .d { font-size: 15px; margin-top: 4px; }
+    .next .btn { margin-top: 16px; min-height: 48px; }
+    .next .micro { margin-top: 8px; }
+  }
+  @media (min-width: 961px) and (max-height: 800px) {
+    .hero { padding: 20px 0 32px; }
+    .diag { padding: 24px; border-radius: 24px; }
+    .diag h2 { font-size: 26px; }
+    .diag .lead { margin: 4px 0 12px; font-size: 14px; }
+    .opt label { padding: 10px 16px; gap: 12px; }
+    .next { margin-top: 16px; padding: 16px 20px; }
+    .next h3 { font-size: 20px; }
+    .next .d { font-size: 14px; line-height: 1.5; }
+    .next .btn { margin-top: 12px; }
+  }
+
   /* Proof strip */
   .proof { background: var(--ink); color: #fff; padding: 8px 0; }
   .proof ul { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); }
@@ -123,19 +163,31 @@
   .split { display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: start; }
   .sec h2, .close-sec h2 { font-size: 48px; line-height: 1.08; letter-spacing: -.035em; font-weight: 600; max-width: 24ch; }
   .split h2 { max-width: 14ch; }
+  @media (min-width: 961px) { .split-x { align-items: first baseline; } .split-x > :first-child { position: sticky; top: calc(80px + 32px); } }
   .tone-white { background: #fff; }
   .tone-paper2 { background: var(--paper-2); }
   .on-ink { background: var(--ink); color: #fff; }
 
   /* Pain */
+  .pain .split { align-items: center; }
   .pain ul { list-style: none; }
   .pain .split h2 { max-width: none; }
   .pain .lead { margin-top: 24px; font-size: 22px; line-height: 1.4; font-weight: 500; color: var(--ink-soft); max-width: 28ch; }
   .pain li { display: grid; grid-template-columns: 34px 1fr; gap: 14px; padding: 24px 0; border-top: 1px solid rgba(2,14,38,.18); font-size: 28px; line-height: 1.3; letter-spacing: -.025em; font-weight: 600; text-wrap: balance; }
   .pain li:last-child { border-bottom: 1px solid rgba(2,14,38,.18); }
   .pain li .st { width: 18px; height: 18px; margin-top: .45em; color: var(--orange-ink); }
-  .pain .close { margin-top: 72px; font-size: 40px; line-height: 1.2; letter-spacing: -.03em; font-weight: 600; max-width: 32ch; color: var(--ink-soft); text-wrap: balance; }
+  .pain .close { margin: 80px auto 0; font-size: 40px; line-height: 1.2; letter-spacing: -.03em; font-weight: 600; max-width: 26ch; text-align: center; color: var(--ink-soft); text-wrap: balance; }
   .pain .close strong { color: var(--ink); font-weight: 600; }
+  /* Scroll paint: words fill in reading order while the quote crosses the viewport (desktop, motion allowed). */
+  @keyframes paint-soft { from { color: #7a8896; } to { color: var(--ink-soft); } }
+  @keyframes paint-ink { from { color: #7a8896; } to { color: var(--ink); } }
+  @supports (animation-timeline: view()) {
+    @media (min-width: 961px) and (prefers-reduced-motion: no-preference) {
+      .pain .close { view-timeline: --quote block; }
+      .pain .close .w { animation: paint-soft linear both; animation-timeline: --quote; animation-range: cover calc(9% + var(--i) * .8%) cover calc(19% + var(--i) * .8%); }
+      .pain .close strong .w { animation-name: paint-ink; }
+    }
+  }
 
   /* Process */
   .steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 56px; margin-top: 64px; counter-reset: s; }
@@ -177,14 +229,12 @@
   details[open] > summary .pm .v { opacity: 0; }
 
   /* Why */
-  .founder { font-size: 24px; line-height: 1.4; letter-spacing: -.01em; font-weight: 500; color: var(--ink); max-width: 38ch; }
+  .why-head { max-width: 640px; }
+  .why-head .lead { margin-top: 20px; font-size: 20px; line-height: 1.5; color: var(--ink-soft); max-width: 44ch; }
   .why { display: grid; grid-template-columns: 1fr 1fr; gap: 0 56px; margin-top: 64px; list-style: none; }
   .why li { padding: 28px 0 36px; border-top: 1px solid var(--line); }
   .why h3 { font-size: 26px; line-height: 1.15; letter-spacing: -.02em; font-weight: 600; }
   .why p { font-size: 17px; line-height: 1.6; color: var(--ink-soft); margin-top: 10px; max-width: 38ch; }
-  .team { display: grid; grid-template-columns: auto 1fr; gap: 16px 40px; align-items: baseline; margin-top: 8px; padding: 32px 0; border-top: 1px solid var(--line); }
-  .team strong { font-size: 44px; line-height: 1; letter-spacing: -.03em; font-weight: 600; color: var(--ink); white-space: nowrap; }
-  .team p { font-size: 17px; line-height: 1.6; color: var(--ink-soft); max-width: 52ch; }
   .values { margin-top: 8px; padding-top: 24px; border-top: 2px solid var(--ink); font: 600 18px/1.5 var(--sans); letter-spacing: .01em; color: var(--ink); }
 
   /* FAQ */
@@ -249,9 +299,49 @@
     @media (hover: hover) { .btn:hover .ar { translate: 2px 0; } }
   }
 
+  /* Entrances. Hidden states exist only while html.reveal-on is set (JS present and motion allowed). */
+  :root { --enter: cubic-bezier(.2, .7, .2, 1); }
+  html.intro-on::before { content: ""; position: fixed; inset: 0; z-index: 90; background: var(--paper); }
+  .opening { --mw: 168px; position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--paper); pointer-events: none; animation: open-out .38s var(--enter) .62s both; }
+  .opening .mark { position: relative; width: var(--mw); animation: mark-out .38s var(--enter) .62s both; }
+  .opening img { display: block; width: 100%; height: auto; clip-path: inset(0 100% 0 0); animation: wipe .44s cubic-bezier(.4, 0, .2, 1) .2s both; }
+  .opening .star { position: absolute; left: calc(50% - var(--mw) * .05); top: calc(50% - var(--mw) * .05); width: calc(var(--mw) * .1); height: calc(var(--mw) * .1); fill: var(--orange); opacity: 0; animation: star-in .56s linear both, star-gone .08s linear .58s forwards; }
+  .opening .streak { position: absolute; left: calc(50% - var(--mw) * .8); top: calc(50% - 1px); width: calc(var(--mw) * 1.6); height: 2px; background: linear-gradient(90deg, transparent, var(--orange-deep) 50%, transparent); opacity: 0; animation: streak .4s cubic-bezier(.4, 0, .2, 1) .1s both; }
+  @keyframes open-out { to { opacity: 0; } }
+  @keyframes mark-out { to { scale: 1.04; } }
+  @keyframes wipe { to { clip-path: inset(0 0 0 0); } }
+  @keyframes star-in {
+    0% { opacity: 0; scale: .6; rotate: -90deg; translate: 0 0; animation-timing-function: var(--enter); }
+    50% { opacity: 1; scale: 2.6; rotate: 0deg; translate: 0 0; animation-timing-function: cubic-bezier(.6, 0, .2, 1); }
+    100% { opacity: 1; scale: 1; rotate: 0deg; translate: calc(var(--mw) * .375) calc(var(--mw) * -.129); }
+  }
+  @keyframes star-gone { to { opacity: 0; } }
+  @keyframes streak {
+    0% { opacity: 0; scale: .3 1; translate: calc(var(--mw) * -.45) 0; }
+    40% { opacity: 1; }
+    100% { opacity: 0; scale: 1 1; translate: calc(var(--mw) * .45) 0; }
+  }
+
+  html.reveal-on .hw { display: inline-block; opacity: 0; filter: blur(8px); translate: 0 8px; transition: opacity .45s var(--enter), filter .45s var(--enter), translate .45s var(--enter); transition-delay: calc(var(--l, 0) * 45ms); }
+  html.reveal-on .intro .sub, html.reveal-on .intro .ctas, html.reveal-on .intro .micro { opacity: 0; translate: 0 12px; transition: opacity .6s var(--enter), translate .6s var(--enter); }
+  html.reveal-on .intro .sub { transition-delay: .32s; }
+  html.reveal-on .intro .ctas { transition-delay: .4s; }
+  html.reveal-on .intro .micro { transition-delay: .48s; }
+  html.reveal-on .hero .diag { opacity: 0; translate: 0 16px; transition: opacity .7s var(--enter), translate .7s var(--enter); transition-delay: .12s; }
+  html.hero-go .hw { opacity: 1; filter: none; translate: none; }
+  html.hero-go .intro .sub, html.hero-go .intro .ctas, html.hero-go .intro .micro, html.hero-go .hero .diag { opacity: 1; translate: none; }
+
+  html.reveal-on [data-r] { opacity: 0; translate: 0 12px; transition: opacity .5s var(--enter), translate .5s var(--enter); transition-delay: var(--d, 0ms); }
+  html.reveal-on [data-r="h"] { transition-duration: .6s; }
+  @media (min-width: 961px) {
+    html.reveal-on [data-r="h"] { filter: blur(8px); transition-property: opacity, translate, filter; }
+  }
+  html.reveal-on [data-r].in { opacity: 1; translate: none; filter: none; }
+
   @media (max-width: 960px) {
     html { scroll-padding-top: 80px; }
     .wrap { padding: 0 20px; }
+    .opening { --mw: 144px; }
     header .wrap { height: 68px; gap: 8px; }
     header .logo img { height: 34px; }
     header .btn-sm { margin-left: auto; padding: 10px 16px; font-size: 14px; }
@@ -286,9 +376,7 @@
     .pain li .st { width: 14px; height: 14px; }
     .pain .lead { font-size: 20px; margin-top: 16px; }
     .pain .close { font-size: 28px; line-height: 1.3; margin-top: 48px; }
-    .founder { font-size: 20px; }
-    .team { grid-template-columns: 1fr; padding: 28px 0; }
-    .team strong { font-size: 40px; }
+    .why-head .lead { font-size: 18px; }
     .steps { grid-template-columns: 1fr; gap: 40px; margin-top: 40px; }
     .steps .n { font-size: 56px; }
     .after-cta { margin-top: 48px; }
@@ -362,7 +450,7 @@
   <section class="hero" aria-labelledby="h1">
     <div class="wrap">
       <div class="intro">
-        <h1 id="h1">Dejá de mover datos a mano. Poné la IA a trabajar en tu negocio.</h1>
+        <h1 id="h1"><span class="hw">Dejá</span> <span class="hw">de</span> <span class="hw">mover</span> <span class="hw">datos</span> <span class="hw">a</span> <span class="hw">mano.</span> <span class="hw">Poné</span> <span class="hw">la</span> <span class="hw">IA</span> <span class="hw">a</span> <span class="hw">trabajar</span> <span class="hw">en</span> <span class="hw">tu</span> <span class="hw">negocio.</span></h1>
         <p class="sub">Para empresas de toda América: conectamos tus sistemas, ordenamos tus datos e implementamos IA que funciona todos los días, no un piloto que queda en una presentación.</p>
         <div class="ctas">
           <a class="btn btn-primary" href="#contacto" data-cta>Agendá tu diagnóstico gratuito<svg class="ar" aria-hidden="true"><use href="#arrow"/></svg></a>
@@ -398,11 +486,11 @@
   <section class="proof" aria-label="Resultados en números">
     <div class="wrap">
       <ul>
-        <li><strong>100%</strong><span>de las facturas al ERP, sin carga manual</span></li>
-        <li><strong>80%</strong><span>menos tiempo en seguimiento de entregas</span></li>
-        <li><strong>5s → 2s</strong><span>de carga en un sitio rehecho de cero</span></li>
+        <li data-r><strong>100%</strong><span>de las facturas al ERP, sin carga manual</span></li>
+        <li data-r><strong>80%</strong><span>menos tiempo en seguimiento de entregas</span></li>
+        <li data-r><strong>5s → 2s</strong><span>de carga en un sitio rehecho de cero</span></li>
       </ul>
-      <p class="ind">Proyectos en producción para empresas de logística, agro, servicios marítimos y más</p>
+      <p class="ind" data-r>Proyectos en producción para empresas de logística, agro, servicios marítimos y más</p>
     </div>
   </section>
 
@@ -411,17 +499,17 @@
     <div class="wrap">
       <div class="split">
         <div>
-          <h2 id="pain-title">Sumar IA sobre un cuello de botella no lo arregla. Lo hace más caro.</h2>
-          <p class="lead">¿Dónde se te hace la cola hoy?</p>
+          <h2 id="pain-title" data-r="h">Sumar IA sobre un cuello de botella no lo arregla. Lo hace más caro.</h2>
+          <p class="lead" data-r>¿Dónde se te hace la cola hoy?</p>
         </div>
         <ul>
-          <li><svg class="st" aria-hidden="true"><use href="#star"/></svg><span>Una sola persona puede aprobar, y todo espera por ella</span></li>
-          <li><svg class="st" aria-hidden="true"><use href="#star"/></svg><span>Un paso de carga manual que sigue ahí porque “siempre se hizo así”</span></li>
-          <li><svg class="st" aria-hidden="true"><use href="#star"/></svg><span>Sistemas que no se hablan y alguien que copia y pega entre ellos</span></li>
-          <li><svg class="st" aria-hidden="true"><use href="#star"/></svg><span>Una validación que vive en el Excel de una persona</span></li>
+          <li data-r><svg class="st" aria-hidden="true"><use href="#star"/></svg><span>Una sola persona puede aprobar, y todo espera por ella</span></li>
+          <li data-r><svg class="st" aria-hidden="true"><use href="#star"/></svg><span>Un paso de carga manual que sigue ahí porque “siempre se hizo así”</span></li>
+          <li data-r><svg class="st" aria-hidden="true"><use href="#star"/></svg><span>Sistemas que no se hablan y alguien que copia y pega entre ellos</span></li>
+          <li data-r><svg class="st" aria-hidden="true"><use href="#star"/></svg><span>Una validación que vive en el Excel de una persona</span></li>
         </ul>
       </div>
-      <p class="close">Agregar IA sin resolver eso es sumar carriles a una autopista que termina en un puente de un solo carril. <strong>Nosotros empezamos por el puente.</strong></p>
+      <p class="close"><span class="w" style="--i:0">Agregar</span> <span class="w" style="--i:1">IA</span> <span class="w" style="--i:2">sin</span> <span class="w" style="--i:3">resolver</span> <span class="w" style="--i:4">eso</span> <span class="w" style="--i:5">es</span> <span class="w" style="--i:6">sumar</span> <span class="w" style="--i:7">carriles</span> <span class="w" style="--i:8">a</span> <span class="w" style="--i:9">una</span> <span class="w" style="--i:10">autopista</span> <span class="w" style="--i:11">que</span> <span class="w" style="--i:12">termina</span> <span class="w" style="--i:13">en</span> <span class="w" style="--i:14">un</span> <span class="w" style="--i:15">puente</span> <span class="w" style="--i:16">de</span> <span class="w" style="--i:17">un</span> <span class="w" style="--i:18">solo</span> <span class="w" style="--i:19">carril.</span> <strong><span class="w" style="--i:20">Nosotros</span> <span class="w" style="--i:21">empezamos</span> <span class="w" style="--i:22">por</span> <span class="w" style="--i:23">el</span> <span class="w" style="--i:24">puente.</span></strong></p>
     </div>
   </section>
 
@@ -429,13 +517,13 @@
   <!-- 3. Cómo trabajamos -->
   <section class="sec tone-white" id="como" aria-labelledby="como-title">
     <div class="wrap">
-      <h2 id="como-title">Del diagnóstico a un sistema que tu equipo opera solo</h2>
+      <h2 id="como-title" data-r="h">Del diagnóstico a un sistema que tu equipo opera solo</h2>
       <ol class="steps">
-        <li><div class="n" aria-hidden="true">1</div><h3>Diagnóstico gratuito</h3><p>Entendemos tu operación y tus objetivos, y te decimos qué conviene automatizar primero y por qué.</p></li>
-        <li><div class="n" aria-hidden="true">2</div><h3>Base y automatización</h3><p>Conectamos tus sistemas y armamos datos confiables. Cada entrega queda funcionando en producción.</p></li>
-        <li><div class="n" aria-hidden="true">3</div><h3>IA que trabaja todos los días</h3><p>Sumamos IA donde mueve la aguja y acompañamos a tu equipo hasta que lo opere sin depender de nosotros.</p></li>
+        <li data-r><div class="n" aria-hidden="true">1</div><h3>Diagnóstico gratuito</h3><p>Entendemos tu operación y tus objetivos, y te decimos qué conviene automatizar primero y por qué.</p></li>
+        <li data-r><div class="n" aria-hidden="true">2</div><h3>Base y automatización</h3><p>Conectamos tus sistemas y armamos datos confiables. Cada entrega queda funcionando en producción.</p></li>
+        <li data-r><div class="n" aria-hidden="true">3</div><h3>IA que trabaja todos los días</h3><p>Sumamos IA donde mueve la aguja y acompañamos a tu equipo hasta que lo opere sin depender de nosotros.</p></li>
       </ol>
-      <div class="after-cta">
+      <div class="after-cta" data-r>
         <a class="btn btn-primary" href="#contacto" data-cta>Agendá tu diagnóstico gratuito<svg class="ar" aria-hidden="true"><use href="#arrow"/></svg></a>
         <p class="micro">Sin costo ni compromiso · Respondemos en menos de 24&nbsp;h</p>
       </div>
@@ -445,25 +533,25 @@
   <!-- 4. Resultados -->
   <section class="sec on-ink" id="resultados" aria-labelledby="res-h">
     <div class="wrap">
-      <h2 id="res-h">Lo que ya está funcionando</h2>
+      <h2 id="res-h" data-r="h">Lo que ya está funcionando</h2>
       <ol class="cases">
-        <li class="case">
+        <li class="case" data-r>
           <div><div class="m">100%</div><span class="ml">sin carga manual</span></div>
           <div class="body"><h3>Las facturas se cargan solas en el ERP</h3><p>Un sistema con IA lee cada factura que llega a la casilla y la carga en el ERP. De punta a punta, sin que nadie la tipee.</p></div>
           <div class="meta"><p class="tag">Administración · Automatización con IA</p><p class="tech">casilla de email → extracción con IA → ERP</p></div>
         </li>
-        <li class="case">
+        <li class="case" data-r>
           <div><div class="m">80%</div><span class="ml">menos tiempo de seguimiento</span></div>
           <div class="body"><h3>Todas las entregas, en vivo y en un solo lugar</h3><p>Unificamos los estados de cada operador logístico en una base central y un tablero en vivo, sincronizados con el sistema logístico.</p></div>
           <div class="meta"><p class="tag">Logística · Plataforma de datos</p><p class="tech">APIs de operadores → data warehouse → dashboard + sync</p></div>
         </li>
-        <li class="case">
+        <li class="case" data-r>
           <div><div class="m">5s → 2s</div><span class="ml">60% más rápido</span></div>
           <div class="body"><h3>Un sitio que carga en 2 segundos</h3><p>Rehicimos la estrategia de marca desde cero y entregamos el sitio completo, listo para producción.</p></div>
           <div class="meta"><p class="tag">Marca · Web</p><p class="tech">estrategia de marca → diseño → desarrollo</p></div>
         </li>
       </ol>
-      <div class="after-cta">
+      <div class="after-cta" data-r>
         <a class="btn btn-primary" href="#contacto" data-cta>Agendá tu diagnóstico gratuito<svg class="ar" aria-hidden="true"><use href="#arrow"/></svg></a>
         <p class="micro">Sin costo ni compromiso · Respondemos en menos de 24&nbsp;h</p>
       </div>
@@ -473,24 +561,24 @@
   <!-- 5. Qué hacemos -->
   <section class="sec" id="que-hacemos" aria-labelledby="svc-title">
     <div class="wrap">
-      <div class="split">
+      <div class="split split-x">
         <div>
-          <h2 id="svc-title">Tres frentes, un objetivo: que tu operación funcione con datos</h2>
-          <p class="svc-lead">Nos ocupamos de la capa menos vistosa y más crítica: la que hace que la IA funcione de verdad.</p>
+          <h2 id="svc-title" data-r="h">Tres frentes, un objetivo: que tu operación funcione con datos</h2>
+          <p class="svc-lead" data-r>Nos ocupamos de la capa menos vistosa y más crítica: la que hace que la IA funcione de verdad.</p>
         </div>
         <div>
           <ul class="svc">
-            <li>
+            <li data-r>
               <h3>Estrategia</h3>
               <div><p class="d">Te ayudamos a decidir qué automatizar, en qué orden y qué impacto esperar.</p>
                 <details class="tech-d"><summary><svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg>Para tu equipo técnico</summary><p>Diagnóstico de datos · Roadmap de IA · BI agéntica</p></details></div>
             </li>
-            <li>
+            <li data-r>
               <h3>Datos e integraciones</h3>
               <div><p class="d">Conectamos tus sistemas y armamos una base de datos confiable que se actualiza sola.</p>
                 <details class="tech-d"><summary><svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg>Para tu equipo técnico</summary><p>Pipelines ELT · Data warehouse · Integraciones y APIs · Calidad y gobernanza de datos</p></details></div>
             </li>
-            <li>
+            <li data-r>
               <h3>IA en producción</h3>
               <div><p class="d">Agentes y apps con IA que trabajan sobre tus datos todos los días, medibles y bajo tu control.</p>
                 <details class="tech-d"><summary><svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg>Para tu equipo técnico</summary><p>Soluciones agénticas con LLMs · Automatización de procesos · Python · Apps y sitios web</p></details></div>
@@ -504,23 +592,18 @@
   <!-- 6. Por qué Geno -->
   <section class="sec tone-white" aria-labelledby="why-title">
     <div class="wrap">
-      <div class="split">
-        <h2 id="why-title">Hablás con quienes construyen</h2>
+      <div class="why-head">
+        <h2 id="why-title" data-r="h">Hablás con quienes construyen</h2>
         <!-- [validar] claim inferred from team size and hiring post; founder credentials kept as a suggestion only, see proposal -->
-        <p class="founder">El mismo equipo que hace el diagnóstico es el que diseña, escribe el código y lo pone en producción.</p>
+        <p class="lead" data-r>El mismo equipo que hace el diagnóstico es el que diseña, escribe el código y lo pone en producción.</p>
       </div>
       <ul class="why">
-        <li><h3>Socios, no proveedores</h3><p>Nos comprometemos con el resultado, no con el plan.</p></li>
-        <li><h3>Tu equipo, más capaz</h3><p>Capacitamos a tu gente para que opere y escale sin depender de nosotros.</p></li>
-        <li><h3>Rigor de ingeniería</h3><p>IA con la exigencia de cualquier sistema crítico: probada, medible y en producción.</p></li>
-        <li><h3>Cumplimos lo que prometemos</h3><p>La confianza se construye acción por acción.</p></li>
+        <li data-r><h3>Socios, no proveedores</h3><p>Nos comprometemos con el resultado, no con el plan.</p></li>
+        <li data-r><h3>Tu equipo, más capaz</h3><p>Capacitamos a tu gente para que opere y escale sin depender de nosotros.</p></li>
+        <li data-r><h3>Rigor de ingeniería</h3><p>IA con la exigencia de cualquier sistema crítico: probada, medible y en producción.</p></li>
+        <li data-r><h3>Cumplimos lo que prometemos</h3><p>La confianza se construye acción por acción.</p></li>
       </ul>
-      <!-- [validar] IA-30D es el programa de Jaime: confirmar que se ofrece desde Geno y permiso para nombrar a Censer -->
-      <div class="team">
-        <strong>7 proyectos</strong>
-        <p>diseñados por el propio equipo de Censer, una empresa de logística, en el programa <span style="white-space:nowrap">IA-30D</span>. Al empezar, más de la mitad nunca había usado IA. Uno ya está en producción.</p>
-      </div>
-      <p class="values">Integridad · Versatilidad · Meritocracia · Excelencia</p>
+      <p class="values" data-r>Integridad · Versatilidad · Meritocracia · Excelencia</p>
     </div>
   </section>
 
@@ -528,16 +611,16 @@
   <!-- 7. Preguntas frecuentes -->
   <section class="sec tone-paper2" id="preguntas" aria-labelledby="faq-title">
     <div class="wrap">
-      <div class="split">
-        <h2 id="faq-title">Antes de agendar</h2>
+      <div class="split split-x">
+        <h2 id="faq-title" data-r="h">Antes de agendar</h2>
         <div>
           <div class="faq">
-            <details><summary>¿Necesito tener los datos ordenados para empezar?<svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg></summary><p>No. Justamente por ahí empezamos: el diagnóstico te dice en qué estado están y cuál es el primer paso.</p></details>
-            <details><summary>¿Tenemos que cambiar nuestros sistemas?<svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg></summary><p>No. Trabajamos sobre lo que ya usás, como tu ERP, tus planillas y tus herramientas de gestión, y lo conectamos.</p></details>
-            <details><summary>¿Qué pasa en la llamada de diagnóstico?<svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg></summary><p>Buscamos juntos el paso de tu proceso que, aunque todo lo demás funcione bien, igual genera una cola. Te llevás ese diagnóstico y el siguiente paso concreto. Sin costo ni compromiso.</p></details>
-            <!-- [validar] pregunta nueva: casos tomados del programa IA-30D del fundador (Censer, personal de depósito); confirmar que aplica a Geno -->
-            <details><summary>¿Y si mi equipo nunca usó IA?<svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg></summary><p>Es lo más común. Acompañamos a equipos que arrancaron sin experiencia, incluso personal de depósito, hasta que construyeron sus propias herramientas.</p></details>
-            <details><summary>¿Trabajan fuera de Argentina?<svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg></summary><p>Sí, con empresas de Latinoamérica y Estados Unidos.</p></details>
+            <details data-r><summary>¿Necesito tener los datos ordenados para empezar?<svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg></summary><p>No. Justamente por ahí empezamos: el diagnóstico te dice en qué estado están y cuál es el primer paso.</p></details>
+            <details data-r><summary>¿Tenemos que cambiar nuestros sistemas?<svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg></summary><p>No. Trabajamos sobre lo que ya usás, como tu ERP, tus planillas y tus herramientas de gestión, y lo conectamos.</p></details>
+            <details data-r><summary>¿Qué pasa en la llamada de diagnóstico?<svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg></summary><p>Buscamos juntos el paso de tu proceso que, aunque todo lo demás funcione bien, igual genera una cola. Te llevás ese diagnóstico y el siguiente paso concreto. Sin costo ni compromiso.</p></details>
+            <!-- [validar] respuesta basada en el sitio EN de Geno ("upskilling your internal team"); confirmar el enfoque de capacitación -->
+            <details data-r><summary>¿Y si mi equipo nunca usó IA?<svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg></summary><p>Es lo más común. Arrancamos por un proceso concreto y capacitamos a tu equipo en el camino, hasta que lo pueda operar y escalar sin depender de nosotros.</p></details>
+            <details data-r><summary>¿Trabajan fuera de Argentina?<svg class="pm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path class="v" d="M8 2v12"/></svg></summary><p>Sí, con empresas de Latinoamérica y Estados Unidos.</p></details>
           </div>
         </div>
       </div>
@@ -548,11 +631,11 @@
   <section class="close-sec on-ink" id="contacto" aria-labelledby="close-title">
     <div class="wrap">
       <div>
-        <h2 id="close-title">Contanos dónde están tus datos hoy. Te decimos por dónde empezar.</h2>
-        <p class="body">En el diagnóstico gratuito revisamos tu operación y te llevás un siguiente paso concreto.</p>
-        <p class="alt">¿Preferís escribirnos? <a class="textlink" href="mailto:hello@genoinsights.com">hello@genoinsights.com</a></p>
+        <h2 id="close-title" data-r="h">Contanos dónde están tus datos hoy. Te decimos por dónde empezar.</h2>
+        <p class="body" data-r>En el diagnóstico gratuito revisamos tu operación y te llevás un siguiente paso concreto.</p>
+        <p class="alt" data-r>¿Preferís escribirnos? <a class="textlink" href="mailto:hello@genoinsights.com">hello@genoinsights.com</a></p>
       </div>
-      <div class="formcard" id="formcard" tabindex="-1">
+      <div class="formcard" id="formcard" data-r tabindex="-1">
         <form id="form" novalidate>
           <div class="frow">
             <div class="field"><label for="nombre">Nombre</label><input id="nombre" name="nombre" type="text" autocomplete="name" required aria-describedby="nombre-err"><p class="err" id="nombre-err"></p></div>
@@ -662,6 +745,55 @@
     $('done').hidden = false;
     $('done').focus();
   });
+
+  // Motion: intro (first visit per session), hero entrance, one-shot scroll reveals.
+  (function () {
+    const root = document.documentElement;
+    if (!root.classList.contains('reveal-on')) return;
+    const hero = () => { root.classList.add('hero-go'); flush(); };
+
+    // Group the H1 words by rendered line so each line staggers by 45 ms.
+    let line = -1, top = null;
+    document.querySelectorAll('#h1 .hw').forEach(w => {
+      if (w.offsetTop !== top) { top = w.offsetTop; line++; }
+      w.style.setProperty('--l', line);
+    });
+
+    // Scroll reveals: trigger just before the element enters so the motion ends before the reading zone.
+    let ready = false, pending = [];
+    function reveal(el, delay) {
+      el.style.setProperty('--d', delay + 'ms');
+      el.classList.add('in');
+      el.addEventListener('transitionend', function done(e) {
+        if (e.target !== el || e.propertyName !== 'opacity') return;
+        el.removeEventListener('transitionend', done);
+        el.removeAttribute('data-r');
+      });
+    }
+    function flush() { ready = true; pending.forEach(([el, i]) => reveal(el, 500 + i * 60)); pending = []; }
+    const io = new IntersectionObserver(entries => {
+      entries.filter(e => e.isIntersecting).forEach((e, i) => {
+        io.unobserve(e.target);
+        if (ready) reveal(e.target, Math.min(i, 5) * 60); else pending.push([e.target, Math.min(i, 5)]);
+      });
+    }, { threshold: .15, rootMargin: '0px 0px 8% 0px' });
+    document.querySelectorAll('[data-r]').forEach(el => io.observe(el));
+
+    if (root.classList.contains('intro-on')) {
+      const o = document.createElement('div');
+      o.className = 'opening';
+      o.setAttribute('aria-hidden', 'true');
+      o.innerHTML = '<div class="mark"><img alt="" src="' + document.querySelector('.logo img').src + '"><i class="streak"></i><svg class="star"><use href="#star"/></svg></div>';
+      o.addEventListener('animationstart', e => { if (e.target === o) hero(); });
+      o.addEventListener('animationend', e => { if (e.target === o) o.remove(); });
+      document.body.appendChild(o);
+      root.classList.remove('intro-on');
+      setTimeout(() => { if (!ready) hero(); o.remove(); }, 1800);
+    } else {
+      requestAnimationFrame(() => requestAnimationFrame(hero));
+    }
+    window.__geno = 1;
+  })();
 </script>
 </body>
 </html>
