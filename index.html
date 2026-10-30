@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="noindex, nofollow"><link rel="alternate" hreflang="es" href="https://mateocas1.github.io/geno-propuesta/"><link rel="alternate" hreflang="en" href="https://mateocas1.github.io/geno-propuesta/en/"><link rel="alternate" hreflang="x-default" href="https://mateocas1.github.io/geno-propuesta/"><script>(function(){try{var p=localStorage.getItem('geno-lang');if(p==='es')return;var l=((navigator.languages&&navigator.languages[0])||navigator.language||'').toLowerCase();if(p==='en'||l.indexOf('es')!==0)location.replace('en/'+location.search+location.hash);}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Geno Insights — Dejá de mover datos a mano</title>
 <meta name="description" content="Conectamos tus sistemas, ordenamos tus datos e implementamos IA que funciona todos los días. Agendá tu diagnóstico gratuito.">
@@ -73,7 +73,7 @@
   header .wrap { display: flex; align-items: center; height: 80px; gap: 28px; }
   header .logo { display: block; flex: none; }
   header .logo img { height: 40px; display: block; }
-  header nav { margin-left: auto; }
+  header nav { margin-left: auto; display: flex; align-items: center; gap: 24px; }
   header nav ul { display: flex; gap: 32px; list-style: none; font-size: 15px; }
   header nav a { text-decoration: none; color: var(--ink-soft); padding: 10px 0; display: inline-block; transition: color .15s ease-out; }
   @media (hover: hover) { header nav a:hover { color: var(--ink); } }
@@ -82,6 +82,19 @@
   .menu-btn .i-open { opacity: 1; }
   .menu-btn[aria-expanded="true"] .i-open { opacity: 0; }
   .menu-btn[aria-expanded="true"] .i-close { opacity: 1; }
+
+  /* Language switcher */
+  .lang { display: inline-flex; align-items: center; font-size: 14px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
+  .lang > a, .lang > [aria-current] { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; }
+  .lang > [aria-current] { color: var(--ink); }
+  .lang > a { color: var(--ink-soft); text-decoration: none; }
+  .lang .sep { color: var(--ink-soft); }
+  @media (hover: hover) { .lang > a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: .22em; } }
+  footer .lang { font-size: 14px; font-weight: 500; }
+  footer .legal .lang > a, footer .legal .lang > [aria-current] { min-height: 0; padding: 0 6px; color: #fff; }
+  footer .legal .lang > [aria-current] { font-weight: 700; }
+  footer .legal .lang > a { text-decoration: underline; text-underline-offset: .22em; }
+  footer .lang .sep { color: var(--fog); }
 
   /* Hero */
   .hero { padding: 48px 0 96px; }
@@ -163,7 +176,7 @@
   .split { display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: start; }
   .sec h2, .close-sec h2 { font-size: 48px; line-height: 1.08; letter-spacing: -.035em; font-weight: 600; max-width: 24ch; }
   .split h2 { max-width: 14ch; }
-  @media (min-width: 961px) { .split-x { align-items: first baseline; } .split-x > :first-child { position: sticky; top: calc(80px + 32px); } }
+  @media (min-width: 961px) { .split-x { align-items: center; } }
   .tone-white { background: #fff; }
   .tone-paper2 { background: var(--paper-2); }
   .on-ink { background: var(--ink); color: #fff; }
@@ -184,7 +197,7 @@
   @supports (animation-timeline: view()) {
     @media (min-width: 961px) and (prefers-reduced-motion: no-preference) {
       .pain .close { view-timeline: --quote block; }
-      .pain .close .w { animation: paint-soft linear both; animation-timeline: --quote; animation-range: cover calc(9% + var(--i) * .8%) cover calc(19% + var(--i) * .8%); }
+      .pain .close .w { animation: paint-soft linear both; animation-timeline: --quote; animation-range: cover calc(var(--i) * 46% / var(--n)) cover calc(12% + var(--i) * 46% / var(--n)); }
       .pain .close strong .w { animation-name: paint-ink; }
     }
   }
@@ -280,11 +293,15 @@
   footer a { text-decoration: none; color: #fff; display: inline-block; padding: 6px 0; }
   footer .bot { display: flex; justify-content: space-between; gap: 16px; padding-top: 24px; flex-wrap: wrap; }
   footer .bot a { padding: 0; }
+  footer .legal { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0 6px; }
   @media (hover: hover) { footer a:hover { text-decoration: underline; } }
 
   /* Motion: movement and scale only when the visitor has not opted out */
   @media (prefers-reduced-motion: no-preference) {
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; interpolate-size: allow-keywords; }
+    /* Smooth open/close so a centred heading re-centres gradually; browsers without ::details-content switch instantly. */
+    details::details-content { block-size: 0; overflow: clip; transition: block-size .3s var(--enter), content-visibility .3s allow-discrete; }
+    details[open]::details-content { block-size: auto; }
     .btn { transition: background-color .15s ease-out, color .15s ease-out, border-color .15s ease-out, scale .15s ease-out; }
     .btn:not(:disabled):active { scale: .96; }
     .btn .ar { transition: translate .15s ease-out; }
@@ -348,7 +365,10 @@
     .menu-btn { display: block; }
     header nav { margin: 0; position: absolute; top: calc(100% + 8px); left: 20px; right: 20px; background: var(--paper); border: 1px solid transparent; border-radius: 21px; /* 12 row radius + 8 padding + 1 border */ padding: 8px; box-shadow: 0 0 0 1px rgba(2,14,38,.08), 0 2px 4px rgba(2,14,38,.06), 0 16px 32px -8px rgba(2,14,38,.2); max-height: calc(100dvh - 100px); overflow-y: auto; overscroll-behavior: contain; opacity: 0; visibility: hidden; transition: opacity .15s ease-out, visibility 0s linear .15s; }
     header nav[data-open] { opacity: 1; visibility: visible; transition: opacity .3s var(--ease), visibility 0s; }
+    header nav { display: block; }
     header nav ul { flex-direction: column; gap: 0; font-size: 18px; }
+    header nav .lang { display: flex; margin-top: 4px; padding: 4px 8px 0; border-top: 1px solid var(--line); font-size: 16px; }
+    header nav .lang > a, header nav .lang > [aria-current] { min-height: 48px; padding: 0 8px; }
     header nav a { display: flex; align-items: center; min-height: 52px; padding: 0 16px; border-radius: var(--r-sm); color: var(--ink); font-weight: 600; }
     @media (prefers-reduced-motion: no-preference) {
       header nav { translate: 0 -12px; transition: opacity .15s ease-out, translate .15s ease-out, visibility 0s linear .15s; }
@@ -436,6 +456,7 @@
         <li><a href="#que-hacemos">Qué hacemos</a></li>
         <li><a href="#preguntas">Preguntas</a></li>
       </ul>
+      <div class="lang" role="group" aria-label="Idioma"><span aria-current="true" lang="es">ES</span><span class="sep" aria-hidden="true">·</span><a href="en/" hreflang="en" lang="en" data-lang="en" aria-label="English">EN</a></div>
     </nav>
     <a class="btn btn-ink btn-sm" href="#contacto" data-cta>Diagnóstico gratuito</a>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menú">
@@ -509,7 +530,7 @@
           <li data-r><svg class="st" aria-hidden="true"><use href="#star"/></svg><span>Una validación que vive en el Excel de una persona</span></li>
         </ul>
       </div>
-      <p class="close"><span class="w" style="--i:0">Agregar</span> <span class="w" style="--i:1">IA</span> <span class="w" style="--i:2">sin</span> <span class="w" style="--i:3">resolver</span> <span class="w" style="--i:4">eso</span> <span class="w" style="--i:5">es</span> <span class="w" style="--i:6">sumar</span> <span class="w" style="--i:7">carriles</span> <span class="w" style="--i:8">a</span> <span class="w" style="--i:9">una</span> <span class="w" style="--i:10">autopista</span> <span class="w" style="--i:11">que</span> <span class="w" style="--i:12">termina</span> <span class="w" style="--i:13">en</span> <span class="w" style="--i:14">un</span> <span class="w" style="--i:15">puente</span> <span class="w" style="--i:16">de</span> <span class="w" style="--i:17">un</span> <span class="w" style="--i:18">solo</span> <span class="w" style="--i:19">carril.</span> <strong><span class="w" style="--i:20">Nosotros</span> <span class="w" style="--i:21">empezamos</span> <span class="w" style="--i:22">por</span> <span class="w" style="--i:23">el</span> <span class="w" style="--i:24">puente.</span></strong></p>
+      <p class="close" style="--n:24"><span class="w" style="--i:0">Agregar</span> <span class="w" style="--i:1">IA</span> <span class="w" style="--i:2">sin</span> <span class="w" style="--i:3">resolver</span> <span class="w" style="--i:4">eso</span> <span class="w" style="--i:5">es</span> <span class="w" style="--i:6">sumar</span> <span class="w" style="--i:7">carriles</span> <span class="w" style="--i:8">a</span> <span class="w" style="--i:9">una</span> <span class="w" style="--i:10">autopista</span> <span class="w" style="--i:11">que</span> <span class="w" style="--i:12">termina</span> <span class="w" style="--i:13">en</span> <span class="w" style="--i:14">un</span> <span class="w" style="--i:15">puente</span> <span class="w" style="--i:16">de</span> <span class="w" style="--i:17">un</span> <span class="w" style="--i:18">solo</span> <span class="w" style="--i:19">carril.</span> <strong><span class="w" style="--i:20">Nosotros</span> <span class="w" style="--i:21">empezamos</span> <span class="w" style="--i:22">por</span> <span class="w" style="--i:23">el</span> <span class="w" style="--i:24">puente.</span></strong></p>
     </div>
   </section>
 
@@ -667,7 +688,7 @@
       <div><h4>Navegar</h4><ul><li><a href="#como">Cómo trabajamos</a></li><li><a href="#resultados">Resultados</a></li><li><a href="#que-hacemos">Qué hacemos</a></li><li><a href="#">Carreras</a></li></ul></div>
       <div><h4>Contacto</h4><ul><li><a href="mailto:hello@genoinsights.com">hello@genoinsights.com</a></li><li><a href="tel:+541169602358">(+54) 11 6960 2358</a></li><li><a href="#">LinkedIn</a></li></ul></div>
     </div>
-    <div class="bot"><span>© 2026 Geno Insights LLC · Tigre, Buenos Aires</span><span><a href="#">Privacidad</a> · <a href="#">Términos</a> · <a href="#" lang="en">EN</a></span></div>
+    <div class="bot"><span>© 2026 Geno Insights LLC · Tigre, Buenos Aires</span><span class="legal"><a href="#">Privacidad</a> · <a href="#">Términos</a> · <div class="lang" role="group" aria-label="Idioma"><span aria-current="true" lang="es">ES</span><span class="sep" aria-hidden="true">·</span><a href="en/" hreflang="en" lang="en" data-lang="en" aria-label="English">EN</a></div></span></div>
   </div>
 </footer>
 
@@ -708,6 +729,9 @@
     history.replaceState(null, '', '#contacto');
   }
   document.querySelectorAll('[data-cta]').forEach(a => a.addEventListener('click', goForm));
+
+  // Remember the chosen language before navigating (the published site reads this key).
+  document.querySelectorAll('[data-lang]').forEach(a => a.addEventListener('click', () => { try { localStorage.setItem('geno-lang', a.dataset.lang); } catch (e) {} }));
 
   // Mobile menu
   const btn = document.querySelector('.menu-btn'), menu = $('menu');
